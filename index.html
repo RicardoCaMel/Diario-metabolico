@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no"/>
+<meta name="theme-color" content="#1b4332"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="DiarioGLP1"/>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="icon.svg"/>
+<title>Diario Metabólico GLP-1</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#f0ebe3;--card:#fff;--primary:#2d6a4f;--primary-l:#52b788;
+  --primary-bg:#d8f3dc;--accent:#1b4332;--muted:#6b7280;
+  --border:#ddd6cd;--warn:#d97706;--danger:#dc2626;--text:#1c1917;
+}
+body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overscroll-behavior:none;}
+
+/* HEADER */
+.header{background:var(--accent);color:#fff;padding:env(safe-area-inset-top,16px) 20px 0 20px;padding-top:calc(env(safe-area-inset-top,0px) + 16px);}
+.header-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;}
+.header h1{font-size:19px;font-weight:700;letter-spacing:-.3px;}
+.header p{font-size:11px;opacity:.65;margin-top:2px;}
+.score-circle{width:64px;height:64px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;flex-shrink:0;transition:background .4s;}
+.score-num{font-size:21px;font-weight:800;line-height:1;}
+.score-lbl{font-size:9px;opacity:.9;}
+
+/* INSTALL BANNER */
+.install-banner{background:#52b788;color:#fff;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;gap:10px;}
+.install-banner p{font-size:13px;flex:1;}
+.install-btn{background:#fff;color:var(--primary);border:none;padding:7px 14px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;}
+.install-close{background:none;border:none;color:#fff;font-size:18px;cursor:pointer;padding:0 4px;}
+
+/* TABS */
+.tabs{display:flex;background:var(--accent);border-top:1px solid rgba(255,255,255,.12);}
+.tab{flex:1;padding:11px 6px;border:none;background:transparent;color:rgba(255,255,255,.5);font-size:12px;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;font-family:inherit;}
+.tab.active{background:var(--primary);color:#fff;font-weight:600;border-bottom-color:var(--primary-l);}
+
+/* CONTENT */
+.content{padding:14px;max-width:560px;margin:0 auto;padding-bottom:30px;}
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+
+/* CARDS */
+.card{background:var(--card);border-radius:12px;padding:14px;margin-bottom:10px;border:1px solid var(--border);box-shadow:0 1px 3px rgba(0,0,0,.05);}
+.card.accent-card{background:var(--accent);border:none;}
+.card.green-bg{background:var(--primary-bg);border-color:var(--primary-l);}
+
+.section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--primary);margin-bottom:12px;}
+label{font-size:12px;color:var(--muted);display:block;margin-bottom:3px;}
+
+input[type=text],input[type=number],input[type=date],input[type=time],select,textarea{
+  width:100%;padding:10px 11px;border:1px solid var(--border);border-radius:8px;
+  font-size:15px;color:var(--text);background:#fafaf9;outline:none;font-family:inherit;
+}
+textarea{resize:vertical;min-height:70px;}
+input:focus,select:focus,textarea:focus{border-color:var(--primary-l);}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.field-group{margin-bottom:10px;}
+
+/* PILLS */
+.pill{text-align:center;padding:7px;border-radius:8px;font-size:13px;font-weight:600;margin-bottom:10px;}
+.pill.good{background:var(--primary-bg);color:var(--primary);}
+.pill.warn{background:#fef3c7;color:var(--warn);}
+.pill.bad{background:#fee2e2;color:var(--danger);}
+
+/* MEALS */
+.meal-wrap{margin-bottom:8px;}
+.meal-header{width:100%;padding:12px 13px;background:#fafaf9;border:1px solid var(--border);border-radius:10px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;}
+.meal-header.has-data{background:var(--primary-bg);border-color:var(--primary-l);}
+.meal-header span:first-child{font-size:14px;font-weight:600;color:var(--muted);}
+.meal-header.has-data span:first-child{color:var(--primary);}
+.meal-body{border:1px solid var(--border);border-top:none;border-radius:0 0 10px 10px;padding:14px;display:none;}
+.meal-body.open{display:block;}
+
+/* ORDER BTNS */
+.order-btns{display:flex;gap:5px;}
+.order-btn{flex:1;padding:8px 3px;font-size:11px;border:2px solid var(--border);border-radius:8px;background:#fafaf9;cursor:pointer;color:var(--muted);text-align:center;line-height:1.4;font-family:inherit;}
+.order-btn.correct.active{background:var(--primary-bg);border-color:var(--primary);color:var(--primary);font-weight:600;}
+.order-btn.mixed.active{background:#fef3c7;border-color:var(--warn);color:var(--warn);font-weight:600;}
+.order-btn.wrong.active{background:#fee2e2;border-color:var(--danger);color:var(--danger);font-weight:600;}
+
+/* INTENSITY */
+.intensity-btns{display:flex;gap:8px;}
+.intensity-btn{flex:1;padding:9px;border:2px solid var(--border);border-radius:8px;background:#fafaf9;cursor:pointer;font-size:12px;font-family:inherit;color:var(--muted);}
+.intensity-btn.active{background:var(--primary-bg);border-color:var(--primary);color:var(--primary);font-weight:600;}
+
+/* CHECKBOX */
+.checkbox-row{display:flex;align-items:center;gap:10px;padding:11px;background:#fafaf9;border-radius:8px;border:1px solid var(--border);cursor:pointer;user-select:none;}
+.checkbox-row input[type=checkbox]{width:20px;height:20px;accent-color:var(--primary);flex-shrink:0;}
+.checkbox-row span{font-size:13px;color:var(--text);}
+
+/* RANGE */
+.range-header{display:flex;justify-content:space-between;margin-bottom:4px;}
+.range-val{font-size:16px;font-weight:700;color:var(--primary);}
+input[type=range]{width:100%;accent-color:var(--primary);}
+.range-ends{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:2px;}
+
+/* BUTTONS */
+.save-btn{width:100%;padding:14px;background:var(--primary);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;margin-top:6px;font-family:inherit;transition:background .2s;}
+.save-btn.saved{background:var(--primary-l);}
+.copy-btn{width:100%;padding:14px;background:var(--primary);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;margin-bottom:10px;font-family:inherit;}
+.copy-btn.copied{background:var(--primary-l);}
+
+/* WEEK */
+.week-card{cursor:pointer;transition:box-shadow .15s;}
+.week-card:hover,.week-card:active{box-shadow:0 2px 8px rgba(0,0,0,.1);}
+.week-card.today-card{border:2px solid var(--primary);}
+.week-card.empty-card{opacity:.55;}
+
+/* EXPORT */
+.export-preview{width:100%;min-height:260px;font-size:12px;font-family:monospace;background:#f8f8f8;border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);resize:vertical;}
+
+.status-bar{font-size:12px;color:var(--primary);margin-top:5px;}
+.info-card{background:var(--primary-bg);border:1px solid var(--primary-l);padding:12px;border-radius:12px;margin-bottom:10px;}
+.info-card strong{color:var(--accent);font-size:13px;}
+.info-card p{font-size:13px;line-height:1.6;margin-top:5px;}
+
+.score-hint{padding:10px 14px;}
+.score-hint p:first-child{font-size:13px;font-weight:600;}
+.score-hint p:last-child{font-size:11px;color:var(--muted);margin-top:2px;}
+</style>
+</head>
+<body>
+
+<!-- INSTALL BANNER -->
+<div id="installBanner" style="display:none;" class="install-banner">
+  <p>📲 Instala esta app en tu teléfono</p>
+  <button class="install-btn" onclick="installApp()">Instalar</button>
+  <button class="install-close" onclick="document.getElementById('installBanner').style.display='none'">✕</button>
+</div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-top">
+    <div>
+      <h1>🌿 Diario Metabólico</h1>
+      <p>Seguimiento GLP-1 · Protocolo Dr. Jaramillo</p>
+    </div>
+    <div class="score-circle" id="scoreCircle" style="background:#6b7280;">
+      <span class="score-num" id="scoreNum">--</span>
+      <span class="score-lbl">GLP-1</span>
+    </div>
+  </div>
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('today')">📝 Hoy</button>
+    <button class="tab" onclick="switchTab('week')">📅 Semana</button>
+    <button class="tab" onclick="switchTab('export')">📤 Exportar</button>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- TODAY -->
+  <div id="tab-today" class="tab-content active">
+
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <label style="margin:0;font-weight:600;white-space:nowrap;">📅 Fecha:</label>
+        <input type="date" id="entryDate" style="flex:1;" oninput="onDateChange()"/>
+      </div>
+      <p id="savedStatus" class="status-bar" style="display:none;">✓ Día guardado — editando</p>
+    </div>
+
+    <div class="card score-hint" id="scoreHint" style="display:none;">
+      <p id="scoreHintText"></p>
+      <p>Sueño · Ayuno · Estrés · Ejercicio · Orden de comidas</p>
+    </div>
+
+    <!-- SUEÑO -->
+    <div class="card">
+      <p class="section-title">😴 Sueño</p>
+      <div class="grid2">
+        <div class="field-group">
+          <label>Hora de acostarse</label>
+          <input type="time" id="bedtime" oninput="calcSleep();updateScore()"/>
+        </div>
+        <div class="field-group">
+          <label>Hora de despertar</label>
+          <input type="time" id="waketime" oninput="calcSleep();updateScore()"/>
+        </div>
+      </div>
+      <div id="sleepPill" style="display:none;" class="pill"></div>
+      <div class="field-group">
+        <div class="range-header">
+          <label>Calidad del sueño</label>
+          <span class="range-val" id="sleepQualityVal">7/10</span>
+        </div>
+        <input type="range" id="sleepQuality" min="1" max="10" value="7"
+          oninput="document.getElementById('sleepQualityVal').textContent=this.value+'/10';updateScore()"/>
+        <div class="range-ends"><span>1 — Pésimo</span><span>10 — Perfecto</span></div>
+      </div>
+    </div>
+
+    <!-- AYUNO -->
+    <div class="card">
+      <p class="section-title">⏱️ Ayuno Intermitente</p>
+      <div class="grid2">
+        <div class="field-group">
+          <label>Última comida (ayer)</label>
+          <input type="time" id="lastMeal" oninput="calcFast();updateScore()"/>
+        </div>
+        <div class="field-group">
+          <label>Primera comida (hoy)</label>
+          <input type="time" id="firstMeal" oninput="calcFast();updateScore()"/>
+        </div>
+      </div>
+      <div id="fastPill" style="display:none;" class="pill"></div>
+    </div>
+
+    <!-- ALIMENTACIÓN -->
+    <div class="card">
+      <p class="section-title">🍽️ Alimentación</p>
+
+      <div class="meal-wrap">
+        <button class="meal-header" id="mh-breakfast" onclick="toggleMeal('breakfast')">
+          <span>☀️ Desayuno</span><span>▼</span>
+        </button>
+        <div class="meal-body" id="mb-breakfast">
+          <div class="grid2">
+            <div class="field-group"><label>Hora</label><input type="time" id="m-breakfast-time" oninput="updateScore()"/></div>
+            <div class="field-group"><label>Porciones</label>
+              <select id="m-breakfast-portions">
+                <option value="liviano">Liviano</option>
+                <option value="normal" selected>Normal</option>
+                <option value="abundante">Abundante</option>
+              </select>
+            </div>
+          </div>
+          <div class="field-group"><label>Qué comí (detallado)</label>
+            <textarea id="m-breakfast-foods" placeholder="Ej: ensalada de espinaca, huevos revueltos, arepa de maíz..." oninput="updateMealHeader('breakfast');updateScore()"></textarea>
+          </div>
+          <div class="field-group"><label>Orden en que comí</label>
+            <div class="order-btns">
+              <button class="order-btn correct active" data-meal="breakfast" data-order="correct" onclick="setOrder('breakfast','correct')">✅<br>Fibra→Prot<br>→Carbs</button>
+              <button class="order-btn mixed" data-meal="breakfast" data-order="mixed" onclick="setOrder('breakfast','mixed')">⚠️<br>Orden<br>mixto</button>
+              <button class="order-btn wrong" data-meal="breakfast" data-order="wrong" onclick="setOrder('breakfast','wrong')">❌<br>Carbs<br>primero</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="meal-wrap">
+        <button class="meal-header" id="mh-lunch" onclick="toggleMeal('lunch')">
+          <span>🌤️ Almuerzo</span><span>▼</span>
+        </button>
+        <div class="meal-body" id="mb-lunch">
+          <div class="grid2">
+            <div class="field-group"><label>Hora</label><input type="time" id="m-lunch-time" oninput="updateScore()"/></div>
+            <div class="field-group"><label>Porciones</label>
+              <select id="m-lunch-portions">
+                <option value="liviano">Liviano</option>
+                <option value="normal" selected>Normal</option>
+                <option value="abundante">Abundante</option>
+              </select>
+            </div>
+          </div>
+          <div class="field-group"><label>Qué comí (detallado)</label>
+            <textarea id="m-lunch-foods" placeholder="Ej: sopa de lentejas, pechuga a la plancha, ensalada, arroz integral..." oninput="updateMealHeader('lunch');updateScore()"></textarea>
+          </div>
+          <div class="field-group"><label>Orden en que comí</label>
+            <div class="order-btns">
+              <button class="order-btn correct active" data-meal="lunch" data-order="correct" onclick="setOrder('lunch','correct')">✅<br>Fibra→Prot<br>→Carbs</button>
+              <button class="order-btn mixed" data-meal="lunch" data-order="mixed" onclick="setOrder('lunch','mixed')">⚠️<br>Orden<br>mixto</button>
+              <button class="order-btn wrong" data-meal="lunch" data-order="wrong" onclick="setOrder('lunch','wrong')">❌<br>Carbs<br>primero</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="meal-wrap">
+        <button class="meal-header" id="mh-dinner" onclick="toggleMeal('dinner')">
+          <span>🌙 Cena</span><span>▼</span>
+        </button>
+        <div class="meal-body" id="mb-dinner">
+          <div class="grid2">
+            <div class="field-group"><label>Hora</label><input type="time" id="m-dinner-time" oninput="updateScore()"/></div>
+            <div class="field-group"><label>Porciones</label>
+              <select id="m-dinner-portions">
+                <option value="liviano" selected>Liviano</option>
+                <option value="normal">Normal</option>
+                <option value="abundante">Abundante</option>
+              </select>
+            </div>
+          </div>
+          <div class="field-group"><label>Qué comí (detallado)</label>
+            <textarea id="m-dinner-foods" placeholder="Ej: sopa de verduras, pollo, fruta..." oninput="updateMealHeader('dinner');updateScore()"></textarea>
+          </div>
+          <div class="field-group"><label>Orden en que comí</label>
+            <div class="order-btns">
+              <button class="order-btn correct active" data-meal="dinner" data-order="correct" onclick="setOrder('dinner','correct')">✅<br>Fibra→Prot<br>→Carbs</button>
+              <button class="order-btn mixed" data-meal="dinner" data-order="mixed" onclick="setOrder('dinner','mixed')">⚠️<br>Orden<br>mixto</button>
+              <button class="order-btn wrong" data-meal="dinner" data-order="wrong" onclick="setOrder('dinner','wrong')">❌<br>Carbs<br>primero</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label>🍎 Snacks / extras</label>
+        <input type="text" id="snacks" placeholder="Ej: manzana, nueces, café negro, mate..."/>
+      </div>
+    </div>
+
+    <!-- ESTRÉS -->
+    <div class="card">
+      <p class="section-title">😰 Estrés — Garmin</p>
+      <div class="grid2">
+        <div class="field-group">
+          <label>Puntaje Garmin (0–100)</label>
+          <input type="number" id="garminScore" min="0" max="100" placeholder="Ej: 35" oninput="updateStressIndicator();updateScore()"/>
+        </div>
+        <div style="padding-top:18px;">
+          <div id="stressIndicator" style="display:none;" class="pill"></div>
+        </div>
+      </div>
+      <div class="field-group">
+        <label>Nota (opcional)</label>
+        <input type="text" id="stressNote" placeholder="Ej: reunión difícil, día tranquilo..."/>
+      </div>
+    </div>
+
+    <!-- ACTIVIDAD -->
+    <div class="card">
+      <p class="section-title">💪 Actividad Física</p>
+      <div class="grid2">
+        <div class="field-group">
+          <label>Tipo de ejercicio</label>
+          <input type="text" id="actType" placeholder="Caminata, HIIT, pesas..." oninput="updateScore()"/>
+        </div>
+        <div class="field-group">
+          <label>Duración (min)</label>
+          <input type="number" id="actDuration" placeholder="45"/>
+        </div>
+      </div>
+      <div class="field-group">
+        <label>Intensidad</label>
+        <div class="intensity-btns">
+          <button class="intensity-btn" id="int-baja" onclick="setIntensity('baja')">🚶 Baja</button>
+          <button class="intensity-btn active" id="int-media" onclick="setIntensity('media')">🏃 Media</button>
+          <button class="intensity-btn" id="int-alta" onclick="setIntensity('alta')">⚡ Alta</button>
+        </div>
+      </div>
+      <div class="checkbox-row" onclick="toggleWalk()">
+        <input type="checkbox" id="postWalk"/>
+        <span>🚶 Caminata post-comida (10–15 min) — reduce pico glucémico ~30%</span>
+      </div>
+    </div>
+
+    <!-- NOTAS -->
+    <div class="card">
+      <p class="section-title">📝 Notas del día</p>
+      <textarea id="notes" placeholder="Energía, síntomas, cómo me sentí, observaciones..."></textarea>
+    </div>
+
+    <button class="save-btn" id="saveBtn" onclick="saveEntry()">💾 Guardar día</button>
+    <div style="height:24px;"></div>
+  </div>
+
+  <!-- SEMANA -->
+  <div id="tab-week" class="tab-content">
+    <div class="card accent-card" style="padding:12px 16px;">
+      <p style="color:#fff;font-size:14px;opacity:.9;">📅 Últimos 7 días — toca para editar</p>
+    </div>
+    <div id="weekList"></div>
+  </div>
+
+  <!-- EXPORTAR -->
+  <div id="tab-export" class="tab-content">
+    <div class="info-card">
+      <strong>📤 Resumen para Claude</strong>
+      <p>Cada <strong>domingo</strong> copia este texto y pégalo en Claude con el mensaje:<br><br>
+      <em>"Aquí mi resumen semanal metabólico. Analízalo, identifica mis errores y dame recomendaciones para optimizar mi GLP-1."</em></p>
+    </div>
+    <button class="copy-btn" id="copyBtn" onclick="copyExport()">📋 Copiar resumen para Claude</button>
+    <div class="card">
+      <p class="section-title">Vista previa</p>
+      <textarea class="export-preview" id="exportPreview" readonly></textarea>
+    </div>
+    <div style="height:24px;"></div>
+  </div>
+
+</div><!-- /content -->
+
+<script>
+// ── ESTADO ────────────────────────────────────────────────────────────────────
+let currentIntensity = 'media';
+let mealOrders = {breakfast:'correct', lunch:'correct', dinner:'correct'};
+
+// ── UTILIDADES ────────────────────────────────────────────────────────────────
+function pad(n){return String(n).padStart(2,'0');}
+
+function toDateKey(d){
+  d = d||new Date();
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+}
+
+function parseDateKey(k){
+  const[y,m,d]=k.split('-').map(Number);
+  return new Date(y,m-1,d);
+}
+
+function formatLabel(k){
+  const d=parseDateKey(k);
+  const D=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  const M=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  return `${D[d.getDay()]} ${d.getDate()} ${M[d.getMonth()]}`;
+}
+
+function timeDiff(t1,t2){
+  if(!t1||!t2)return null;
+  const[h1,m1]=t1.split(':').map(Number);
+  const[h2,m2]=t2.split(':').map(Number);
+  let mins=(h2*60+m2)-(h1*60+m1);
+  if(mins<0)mins+=1440;
+  return(mins/60).toFixed(1);
+}
+
+function scoreColor(s){return s>=75?'#2d6a4f':s>=50?'#d97706':'#dc2626';}
+function scoreLabel(s){return s>=75?'Óptimo ✓':s>=50?'Mejorable ⚠️':'Crítico ✗';}
+
+// ── SCORE GLP-1 ───────────────────────────────────────────────────────────────
+function calcScore(e){
+  let s=0,max=0;
+  max+=25;
+  const sh=parseFloat(timeDiff(e.sleep.bedtime,e.sleep.waketime))||0;
+  if(sh>=7&&sh<=9)s+=25;else if(sh>=6)s+=15;else if(sh>9)s+=18;else if(sh>0)s+=7;
+  max+=10; s+=Math.min(10,parseInt(e.sleep.quality)||0);
+  max+=25;
+  const fh=parseFloat(timeDiff(e.fasting.lastMeal,e.fasting.firstMeal))||0;
+  if(fh>=16)s+=25;else if(fh>=14)s+=20;else if(fh>=12)s+=15;else if(fh>=10)s+=8;
+  max+=20;
+  const gs=parseInt(e.stress.score);
+  if(!isNaN(gs)){if(gs<=25)s+=20;else if(gs<=50)s+=13;else if(gs<=75)s+=6;else s+=2;}
+  max+=15;
+  if(e.activity.type)s+=10;
+  if(e.activity.postWalk)s+=5;
+  max+=10;
+  const meals=['breakfast','lunch','dinner'];
+  const wf=meals.filter(m=>e.meals[m].foods).length;
+  if(wf>0){const c=meals.filter(m=>e.meals[m].foods&&e.meals[m].order==='correct').length;s+=Math.round((c/wf)*10);}
+  return Math.round((s/max)*100);
+}
+
+// ── UI ────────────────────────────────────────────────────────────────────────
+function calcSleep(){
+  const h=timeDiff(document.getElementById('bedtime').value,document.getElementById('waketime').value);
+  const pill=document.getElementById('sleepPill');
+  if(h){
+    pill.style.display='block';
+    const hf=parseFloat(h);
+    pill.textContent=`${h}h ${hf>=7&&hf<=9?'✓ Óptimo para GLP-1':hf<7?'⚠️ Insuficiente — meta: 7-9h':'⚠️ Excesivo — meta: 7-9h'}`;
+    pill.className=`pill ${hf>=7&&hf<=9?'good':'warn'}`;
+  }else pill.style.display='none';
+}
+
+function calcFast(){
+  const h=timeDiff(document.getElementById('lastMeal').value,document.getElementById('firstMeal').value);
+  const pill=document.getElementById('fastPill');
+  if(h){
+    pill.style.display='block';
+    const hf=parseFloat(h);
+    let c,m;
+    if(hf>=16){c='good';m=`${h}h ✓ Óptimo — máxima activación GLP-1`;}
+    else if(hf>=14){c='good';m=`${h}h ✓ Muy bueno`;}
+    else if(hf>=12){c='warn';m=`${h}h ⚠️ Aceptable — intenta llegar a 16h`;}
+    else{c='bad';m=`${h}h ✗ Insuficiente — mínimo 12h`;}
+    pill.textContent=m; pill.className=`pill ${c}`;
+  }else pill.style.display='none';
+}
+
+function updateStressIndicator(){
+  const gs=parseInt(document.getElementById('garminScore').value);
+  const ind=document.getElementById('stressIndicator');
+  if(!isNaN(gs)){
+    ind.style.display='block';
+    if(gs<=25){ind.className='pill good';ind.textContent='✓ Estrés bajo — óptimo para GLP-1';}
+    else if(gs<=50){ind.className='pill warn';ind.textContent='⚠️ Estrés moderado';}
+    else if(gs<=75){ind.className='pill warn';ind.textContent='⚠️ Estrés alto — reduce GLP-1';}
+    else{ind.className='pill bad';ind.textContent='✗ Muy alto — bloquea GLP-1';}
+  }else ind.style.display='none';
+}
+
+function updateScore(){
+  const e=readEntry();
+  const has=e.sleep.bedtime||e.meals.breakfast.foods||e.activity.type;
+  if(!has)return;
+  const sc=calcScore(e);
+  const circ=document.getElementById('scoreCircle');
+  const num=document.getElementById('scoreNum');
+  const hint=document.getElementById('scoreHint');
+  const htext=document.getElementById('scoreHintText');
+  circ.style.background=scoreColor(sc);
+  num.textContent=sc;
+  hint.style.display='block';
+  hint.style.borderLeft=`4px solid ${scoreColor(sc)}`;
+  htext.style.color=scoreColor(sc);
+  htext.textContent=`Score GLP-1: ${sc}/100 — ${scoreLabel(sc)}`;
+}
+
+function updateMealHeader(meal){
+  const foods=document.getElementById(`m-${meal}-foods`).value;
+  const h=document.getElementById(`mh-${meal}`);
+  const labels={breakfast:'☀️ Desayuno',lunch:'🌤️ Almuerzo',dinner:'🌙 Cena'};
+  h.querySelector('span').textContent=foods.trim()?`${labels[meal]} ✓`:labels[meal];
+  h.classList.toggle('has-data',!!foods.trim());
+}
+
+// ── INTERACCIONES ─────────────────────────────────────────────────────────────
+function toggleMeal(meal){
+  const body=document.getElementById(`mb-${meal}`);
+  const header=document.getElementById(`mh-${meal}`);
+  const open=body.classList.toggle('open');
+  header.querySelectorAll('span')[1].textContent=open?'▲':'▼';
+}
+
+function setOrder(meal,order){
+  mealOrders[meal]=order;
+  document.querySelectorAll(`[data-meal="${meal}"]`).forEach(b=>{
+    b.classList.remove('active');
+    if(b.dataset.order===order)b.classList.add('active');
+  });
+  updateScore();
+}
+
+function setIntensity(v){
+  currentIntensity=v;
+  ['baja','media','alta'].forEach(i=>document.getElementById(`int-${i}`).classList.toggle('active',i===v));
+}
+
+function toggleWalk(){
+  setTimeout(updateScore,0);
+}
+
+// ── LEER FORMULARIO ───────────────────────────────────────────────────────────
+function readEntry(){
+  return{
+    date:document.getElementById('entryDate').value,
+    sleep:{
+      bedtime:document.getElementById('bedtime').value,
+      waketime:document.getElementById('waketime').value,
+      quality:document.getElementById('sleepQuality').value
+    },
+    fasting:{
+      lastMeal:document.getElementById('lastMeal').value,
+      firstMeal:document.getElementById('firstMeal').value
+    },
+    meals:{
+      breakfast:{time:document.getElementById('m-breakfast-time').value,foods:document.getElementById('m-breakfast-foods').value,portions:document.getElementById('m-breakfast-portions').value,order:mealOrders.breakfast},
+      lunch:{time:document.getElementById('m-lunch-time').value,foods:document.getElementById('m-lunch-foods').value,portions:document.getElementById('m-lunch-portions').value,order:mealOrders.lunch},
+      dinner:{time:document.getElementById('m-dinner-time').value,foods:document.getElementById('m-dinner-foods').value,portions:document.getElementById('m-dinner-portions').value,order:mealOrders.dinner},
+      snacks:document.getElementById('snacks').value
+    },
+    stress:{score:document.getElementById('garminScore').value,note:document.getElementById('stressNote').value},
+    activity:{type:document.getElementById('actType').value,duration:document.getElementById('actDuration').value,intensity:currentIntensity,postWalk:document.getElementById('postWalk').checked},
+    notes:document.getElementById('notes').value
+  };
+}
+
+// ── CARGAR EN FORMULARIO ──────────────────────────────────────────────────────
+function loadIntoForm(e){
+  document.getElementById('bedtime').value=e.sleep.bedtime||'';
+  document.getElementById('waketime').value=e.sleep.waketime||'';
+  document.getElementById('sleepQuality').value=e.sleep.quality||7;
+  document.getElementById('sleepQualityVal').textContent=(e.sleep.quality||7)+'/10';
+  document.getElementById('lastMeal').value=e.fasting.lastMeal||'';
+  document.getElementById('firstMeal').value=e.fasting.firstMeal||'';
+  ['breakfast','lunch','dinner'].forEach(m=>{
+    document.getElementById(`m-${m}-time`).value=e.meals[m].time||'';
+    document.getElementById(`m-${m}-foods`).value=e.meals[m].foods||'';
+    document.getElementById(`m-${m}-portions`).value=e.meals[m].portions||(m==='dinner'?'liviano':'normal');
+    setOrder(m,e.meals[m].order||'correct');
+    updateMealHeader(m);
+  });
+  document.getElementById('snacks').value=e.meals.snacks||'';
+  document.getElementById('garminScore').value=e.stress.score||'';
+  document.getElementById('stressNote').value=e.stress.note||'';
+  document.getElementById('actType').value=e.activity.type||'';
+  document.getElementById('actDuration').value=e.activity.duration||'';
+  setIntensity(e.activity.intensity||'media');
+  document.getElementById('postWalk').checked=e.activity.postWalk||false;
+  document.getElementById('notes').value=e.notes||'';
+  calcSleep(); calcFast(); updateStressIndicator(); updateScore();
+}
+
+// ── STORAGE (localStorage) ────────────────────────────────────────────────────
+function saveEntry(){
+  const e=readEntry();
+  try{
+    localStorage.setItem(`glp1:${e.date}`,JSON.stringify(e));
+    const btn=document.getElementById('saveBtn');
+    btn.textContent='✓ Guardado correctamente';
+    btn.classList.add('saved');
+    document.getElementById('savedStatus').style.display='block';
+    setTimeout(()=>{btn.textContent='💾 Guardar día';btn.classList.remove('saved');},2000);
+  }catch(err){alert('Error al guardar. Verifica el espacio disponible.');}
+}
+
+function loadEntry(dateKey){
+  try{
+    const d=localStorage.getItem(`glp1:${dateKey}`);
+    return d?JSON.parse(d):null;
+  }catch(e){return null;}
+}
+
+function onDateChange(){
+  const k=document.getElementById('entryDate').value;
+  if(!k)return;
+  const e=loadEntry(k);
+  const status=document.getElementById('savedStatus');
+  if(e){loadIntoForm(e);status.style.display='block';}
+  else{
+    const empty={sleep:{bedtime:'',waketime:'',quality:7},fasting:{lastMeal:'',firstMeal:''},
+      meals:{breakfast:{time:'',foods:'',portions:'normal',order:'correct'},lunch:{time:'',foods:'',portions:'normal',order:'correct'},dinner:{time:'',foods:'',portions:'liviano',order:'correct'},snacks:''},
+      stress:{score:'',note:''},activity:{type:'',duration:'',intensity:'media',postWalk:false},notes:''};
+    loadIntoForm(empty);
+    status.style.display='none';
+    document.getElementById('scoreCircle').style.background='#6b7280';
+    document.getElementById('scoreNum').textContent='--';
+    document.getElementById('scoreHint').style.display='none';
+  }
+}
+
+// ── SEMANA ────────────────────────────────────────────────────────────────────
+function renderWeek(){
+  const list=document.getElementById('weekList');
+  const today=new Date();
+  const todayKey=toDateKey();
+  let html='';
+  for(let i=6;i>=0;i--){
+    const d=new Date(today);
+    d.setDate(today.getDate()-i);
+    const key=toDateKey(d);
+    const e=loadEntry(key);
+    const sc=e?calcScore(e):null;
+    const sh=e?timeDiff(e.sleep.bedtime,e.sleep.waketime):null;
+    const fh=e?timeDiff(e.fasting.lastMeal,e.fasting.firstMeal):null;
+    const isToday=key===todayKey;
+    html+=`<div class="card week-card ${isToday?'today-card':''} ${!e?'empty-card':''}" onclick="goToDay('${key}')">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div style="flex:1;">
+          <p style="font-size:14px;font-weight:600;">${formatLabel(key)}${isToday?' · Hoy':''}</p>
+          ${e?`<p style="font-size:12px;color:var(--muted);margin-top:3px;">${sh?'😴 '+sh+'h':''} ${fh?'⏱️ '+fh+'h':''} ${e.activity.type?'💪 '+e.activity.type:''} ${e.stress.score?'😰 '+e.stress.score:''}</p>`
+             :`<p style="font-size:12px;color:var(--muted);margin-top:3px;">Sin registro — toca para agregar</p>`}
+        </div>
+        ${sc!==null?`<div class="score-circle" style="background:${scoreColor(sc)};width:50px;height:50px;"><span class="score-num" style="font-size:17px;">${sc}</span></div>`:'<span style="font-size:22px;color:var(--border);">＋</span>'}
+      </div>
+    </div>`;
+  }
+  list.innerHTML=html;
+}
+
+function goToDay(key){
+  document.getElementById('entryDate').value=key;
+  onDateChange();
+  switchTab('today');
+}
+
+// ── EXPORTAR ──────────────────────────────────────────────────────────────────
+function renderExport(){
+  const today=new Date();
+  const days=[];
+  for(let i=6;i>=0;i--){
+    const d=new Date(today);
+    d.setDate(today.getDate()-i);
+    const key=toDateKey(d);
+    const e=loadEntry(key);
+    if(e)days.push({key,e});
+  }
+  if(!days.length){
+    document.getElementById('exportPreview').value='No hay datos esta semana.\n\nVe al tab "Hoy" para comenzar a registrar.';
+    return;
+  }
+  const ol={correct:'Fibra→Prot→Carbs ✓',mixed:'Orden mixto ⚠️',wrong:'Carbs primero ✗'};
+  let text=`📊 RESUMEN SEMANAL METABÓLICO\n`;
+  text+=`Período: ${formatLabel(days[0].key)} → ${formatLabel(days[days.length-1].key)}\n`;
+  text+=`Días registrados: ${days.length}/7\n${'─'.repeat(46)}\n\n`;
+  let sa=[],fa=[],ssa=[],ex=0,wk=0;
+  for(const{key,e}of days){
+    const sh=timeDiff(e.sleep.bedtime,e.sleep.waketime);
+    const fh=timeDiff(e.fasting.lastMeal,e.fasting.firstMeal);
+    const sc=calcScore(e);
+    if(sh)sa.push(parseFloat(sh));
+    if(fh)fa.push(parseFloat(fh));
+    if(e.stress.score)ssa.push(parseInt(e.stress.score));
+    if(e.activity.type)ex++;
+    if(e.activity.postWalk)wk++;
+    text+=`📅 ${formatLabel(key).toUpperCase()} | Score GLP-1: ${sc}/100 (${scoreLabel(sc)})\n`;
+    text+=`😴 Sueño: ${sh?sh+'h':'N/R'} | Calidad: ${e.sleep.quality}/10\n`;
+    text+=`⏱️ Ayuno: ${fh?fh+'h':'N/R'} | Última ayer: ${e.fasting.lastMeal||'N/R'} → Primera hoy: ${e.fasting.firstMeal||'N/R'}\n`;
+    for(const[id,lb]of[['breakfast','Desayuno'],['lunch','Almuerzo'],['dinner','Cena']]){
+      if(e.meals[id].foods)text+=`🍽️ ${lb}(${e.meals[id].time||'N/R'}) ${e.meals[id].portions}: ${e.meals[id].foods} | ${ol[e.meals[id].order]}\n`;
+    }
+    if(e.meals.snacks)text+=`🍎 Snacks: ${e.meals.snacks}\n`;
+    text+=`😰 Estrés Garmin: ${e.stress.score||'N/R'}${e.stress.note?' | '+e.stress.note:''}\n`;
+    text+=`💪 ${e.activity.type||'Sin actividad'}${e.activity.duration?' '+e.activity.duration+'min':''} ${e.activity.intensity} | Caminata post-comida: ${e.activity.postWalk?'✓':'✗'}\n`;
+    if(e.notes)text+=`📝 ${e.notes}\n`;
+    text+='\n';
+  }
+  text+='─'.repeat(46)+'\n📈 ESTADÍSTICAS\n';
+  text+=`• Promedio sueño: ${sa.length?(sa.reduce((a,b)=>a+b,0)/sa.length).toFixed(1)+'h':'N/R'}\n`;
+  text+=`• Promedio ayuno: ${fa.length?(fa.reduce((a,b)=>a+b,0)/fa.length).toFixed(1)+'h':'N/R'}\n`;
+  text+=`• Promedio estrés: ${ssa.length?Math.round(ssa.reduce((a,b)=>a+b,0)/ssa.length):'N/R'}\n`;
+  text+=`• Días ejercicio: ${ex}/${days.length} | Caminata post-comida: ${wk}/${days.length}\n`;
+  document.getElementById('exportPreview').value=text;
+}
+
+function copyExport(){
+  const text=document.getElementById('exportPreview').value;
+  const btn=document.getElementById('copyBtn');
+  navigator.clipboard.writeText(text).then(()=>{
+    btn.textContent='✓ ¡Copiado!';btn.classList.add('copied');
+    setTimeout(()=>{btn.textContent='📋 Copiar resumen para Claude';btn.classList.remove('copied');},3000);
+  }).catch(()=>{
+    document.getElementById('exportPreview').select();
+    document.execCommand('copy');
+    btn.textContent='✓ ¡Copiado!';btn.classList.add('copied');
+    setTimeout(()=>{btn.textContent='📋 Copiar resumen para Claude';btn.classList.remove('copied');},3000);
+  });
+}
+
+// ── TABS ──────────────────────────────────────────────────────────────────────
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['today','week','export'][i]===name));
+  document.querySelectorAll('.tab-content').forEach(tc=>tc.classList.remove('active'));
+  document.getElementById(`tab-${name}`).classList.add('active');
+  if(name==='week')renderWeek();
+  if(name==='export')renderExport();
+}
+
+// ── PWA INSTALL ───────────────────────────────────────────────────────────────
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();
+  deferredPrompt=e;
+  document.getElementById('installBanner').style.display='flex';
+});
+window.addEventListener('appinstalled',()=>{
+  document.getElementById('installBanner').style.display='none';
+  deferredPrompt=null;
+});
+function installApp(){
+  if(deferredPrompt){deferredPrompt.prompt();deferredPrompt.userChoice.then(()=>deferredPrompt=null);}
+}
+
+// ── SERVICE WORKER ────────────────────────────────────────────────────────────
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('/sw.js').catch(()=>{});
+  });
+}
+
+// ── INICIO ────────────────────────────────────────────────────────────────────
+(function init(){
+  const today=toDateKey();
+  document.getElementById('entryDate').value=today;
+  const e=loadEntry(today);
+  if(e){loadIntoForm(e);document.getElementById('savedStatus').style.display='block';}
+})();
+</script>
+</body>
+</html>

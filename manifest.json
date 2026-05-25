@@ -1,0 +1,15 @@
+{
+  "name": "Diario Metabólico GLP-1",
+  "short_name": "DiarioGLP1",
+  "description": "Seguimiento diario para optimizar tu metabolismo y producción de GLP-1",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#1b4332",
+  "theme_color": "#1b4332",
+  "orientation": "portrait-primary",
+  "lang": "es",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

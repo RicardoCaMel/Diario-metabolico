@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="80" fill="#1b4332"/>
+  <circle cx="256" cy="256" r="160" fill="#2d6a4f"/>
+  <!-- Leaf shape -->
+  <path d="M256 120 C310 150 370 200 356 290 C342 340 290 370 256 380
+           C222 370 170 340 156 290 C142 200 202 150 256 120Z"
+        fill="#52b788" opacity="0.9"/>
+  <!-- Stem -->
+  <line x1="256" y1="380" x2="256" y2="430" stroke="#52b788" stroke-width="12" stroke-linecap="round"/>
+  <!-- Vein -->
+  <path d="M256 160 Q260 240 256 370" stroke="#1b4332" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <!-- Side veins -->
+  <path d="M256 210 Q285 230 310 225" stroke="#1b4332" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+  <path d="M256 250 Q283 268 308 262" stroke="#1b4332" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+  <path d="M256 290 Q280 305 300 300" stroke="#1b4332" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M256 210 Q227 230 202 225" stroke="#1b4332" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+  <path d="M256 250 Q229 268 204 262" stroke="#1b4332" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+  <path d="M256 290 Q232 305 212 300" stroke="#1b4332" stroke-width="3" fill="none" stroke-linecap="round"/>
+</svg>
